@@ -37,7 +37,7 @@
 
   - name: create r53 record
     amazon.aws.route53:
-      zone: "{{ zone_id }}"
+      zone: "{{ domain_name }}"
       record: "{{ item.item}}.{{ domain_name }}"
       type: A
       value: "{{ item.instances[0].private_ip_address }}"
