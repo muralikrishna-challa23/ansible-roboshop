@@ -27,8 +27,8 @@
 
   - name: output of ec2
     ansible.builtin.debug:
-     msg: "public_ip_address is: {{ ec2_output.instances[0].public_ip_address }}"
+     msg: "public_ip_address is: {{ ec2_output.results.instances[0].public_ip_address }}"
 
   - name: output of ec2
     ansible.builtin.debug:
-     msg: "private_ip_address is: {{ ec2_output.instances[0].private_ip_address }}"
+     msg: "private_ip_address is: {{ ec2_outputresults.results.instances[0].private_ip_address }}"
