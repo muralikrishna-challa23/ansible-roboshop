@@ -7,10 +7,10 @@
    zone_id: "Z026855721W2V0QCE5DEE"
    domain_name: "mkreddy.shop"
    instance_type: "t3.micro"
-   instances:
+   instance:
    - mongodb
   tasks:
-  - name: create ec2 instances
+  - name: create ec2 instance
     amazon.aws.ec2_instance:
      name: "{{ item }}"
      instance_type: "{{ instance_type }}"
@@ -18,7 +18,7 @@
      image_id: "{{ ami_id }}"
      tags:
       name: "{{ item }}"
-    loop: "{{ instances }}"
+    loop: "{{ instance }}"
     register: ec2_output
 
   # - name: output of ec2
