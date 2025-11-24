@@ -7,8 +7,11 @@
    zone_id: "Z026855721W2V0QCE5DEE"
    domain_name: "mkreddy.shop"
    instance_type: "t3.micro"
-   instance:
-   - mongodb
+  #  instance:
+  #  - mongodb
+  #  - redis
+  #  - mysql
+  #  - rabbitmq
   tasks:
   - name: create ec2 instance
     amazon.aws.ec2_instance:
