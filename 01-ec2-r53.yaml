@@ -35,13 +35,13 @@
   #    msg: "private_ip_address is: {{ item.instances[0].private_ip_address }}"
   #   loop: "{{ ec2_output.results }}"
 
-- name: create r53 record
-  amazon.aws.route53:
-    zone: "{{ zone_id }}"
-    record: "{{ item.item}}.{{ domain_name }}"
-    type: A
-    value: "{{ item.instances[0].private_ip_address }}"
-    state: present
-    ttl: 1
-    overwritten: true
-  loop: "{{ ec2_output.results }}"
+  - name: create r53 record
+    amazon.aws.route53:
+      zone: "{{ zone_id }}"
+      record: "{{ item.item}}.{{ domain_name }}"
+      type: A
+      value: "{{ item.instances[0].private_ip_address }}"
+      state: present
+      ttl: 1
+      overwritten: true
+    loop: "{{ ec2_output.results }}"
