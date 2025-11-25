@@ -1,0 +1,113 @@
+- name: catalogue setup
+  hosts: catalogue
+  become: yes
+  task:
+  - name: disable nodejs
+    ansible.builtin.command: dnf module disable nodejs -y
+
+  - name: enable nodejs
+    ansible.builtin.command: dnf module enable nodejs:20 -y
+
+  - name: install nodejs
+    ansible.builtin.package:
+     name: nodejs
+     state: present
+    
+  - name: roboshop user create
+    ansible.builtin.user:
+     name: roboshop
+     comment: roboshop system user
+     system: yes
+     shell: /sbin/nologin
+     home: /app
+
+  - name: remove app directory
+    ansible.builtin.file:
+     path: /app
+     state: absent
+
+  - name: create app directory
+    ansible.builtin.file:
+     path: /app
+     state: directory
+
+  - name: remove app from tmp directory
+    ansible.builtin.file:
+     path: /tmp/catalogue.zip
+     state: absent
+
+  - name: download catalogue application
+    ansible.builtin.get_url:
+     url: https://roboshop-artifacts.s3.amazonaws.com/catalogue-v3.zip
+     dest: /tmp/catalogue.zip
+
+
+SCRIPT_PATH=$PWD
+
+dnf module disable nodejs -y &>>$LOG_FILE
+VALIDATE $? "Disable NodeJs"
+
+dnf module enable nodejs:20 -y &>>$LOG_FILE
+VALIDATE $? "Enable NodeJs 20"
+
+dnf install nodejs -y &>>$LOG_FILE
+VALIDATE $? "Installing NodeJs"
+
+id roboshop &>>$LOG_FILE
+if [ $? -ne 0 ]; then
+    useradd --system --home /app --shell /sbin/nologin --comment "roboshop system user" roboshop &>>$LOG_FILE
+    VALIDATE $? "Creating System user roboshop"
+else
+    echo -e "User already exists...$Y SKIPPING $W" | tee -a &>>$LOG_FILE
+fi
+
+mkdir -p  /app &>>$LOG_FILE
+
+rm -rf /tmp/catalogue.zip &>>$LOG_FILE
+VALIDATE $? "tmp directory catalogue.zip file cleanup"
+
+curl -o /tmp/catalogue.zip https://roboshop-artifacts.s3.amazonaws.com/catalogue-v3.zip  &>>$LOG_FILE
+VALIDATE $? "Downloading Catalogue to /tmp directory"
+
+cd /app &>>$LOG_FILE
+VALIDATE $? "Moving to app directory"
+
+rm -rf /app/* &>>$LOG_FILE
+VALIDATE $? "cleanup app directory"
+
+unzip /tmp/catalogue.zip &>>$LOG_FILE
+VALIDATE $? "unzipping catalogue to app directory"
+
+npm install  &>>$LOG_FILE
+
+cp $SCRIPT_PATH/catalogue.service  /etc/systemd/system/catalogue.service &>>$LOG_FILE
+
+systemctl daemon-reload &>>$LOG_FILE
+VALIDATE $? "daemon-reload"
+
+systemctl enable catalogue &>>$LOG_FILE
+VALIDATE $? "Enabling Catalogue"
+
+systemctl start catalogue &>>$LOG_FILE
+VALIDATE $? "Starting Catalogue"
+
+cp $SCRIPT_PATH/mongo.repo /etc/yum.repos.d/mongo.repo &>>$LOG_FILE
+VALIDATE $? "mongodb repo copy"
+
+dnf install mongodb-mongosh -y &>>$LOG_FILE
+VALIDATE $? "Installing mongodb client"
+
+MONGODATA=$(mongosh mongo.mkreddy.shop --quiet --eval "db.getMongo().getDBNames().indexOf('catalogue')" )
+if [ $MONGODATA -le 0 ]; then
+    mongosh --host mongo.mkreddy.shop </app/db/master-data.js &>>$LOG_FILE
+    VALIDATE $? "Load master data to mongodb"
+else
+  echo -e "Master data already loaded.. $Y SKIPPING $W"
+fi
+
+systemctl restart catalogue &>>$LOG_FILE
+VALIDATE $? "Catalogue service restart"
+
+
+
+
