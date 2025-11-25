@@ -47,7 +47,7 @@
       state: present
       ttl: 1
       overwrite: true
-    when:  item.item  <> "frontend"
+    when:  item.item  != "frontend"
     loop: "{{ ec2_output.results }}"
 
   - name: create r53 record for frontend
