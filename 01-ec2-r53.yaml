@@ -55,7 +55,7 @@
       zone: "{{ domain_name }}"
       record: "{{ domain_name }}"
       type: A
-      value: "{{ item.instances[1].public_ip_address }}"
+      value: "{{ item.instances[0].public_ip_address }}"
       state: present
       ttl: 1
       overwrite: true
