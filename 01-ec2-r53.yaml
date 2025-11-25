@@ -53,7 +53,7 @@
   - name: create r53 record for frontend
     amazon.aws.route53:
       zone: "{{ domain_name }}"
-      record: {{ domain_name }}"
+      record: "{{ domain_name }}"
       type: A
       value: "{{ item.instances[1].public_ip_address }}"
       state: present
