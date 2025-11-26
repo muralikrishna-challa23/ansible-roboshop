@@ -64,7 +64,7 @@
   - name: install mongo client
     ansible.builtin.package:
      name: mongodb-mongosh
-     state: installed
+     state: present
   
   - name: connect to mongodb
     ansible.builtin command: mongosh mongodb.mkreddy.shop --quiet --eval "db.getMongo().getDBNames().indexOf('catalogue')"
