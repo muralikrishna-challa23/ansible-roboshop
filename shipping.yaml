@@ -13,7 +13,7 @@
   - name: install python
     ansible.builtin.pip:
      executable: pip3.9
-     name: "{{item}}""
+     name: "{{item}}"
     loop:
     - cryptography
     - pymysql
