@@ -87,7 +87,7 @@
   - name: Start catalogue service
     ansible.builtin.service:
      name: catalogue
-     state: present
+     state: started
      enabled: yes
 
   - name: daemon-reload
