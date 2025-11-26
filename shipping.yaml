@@ -10,6 +10,11 @@
     - maven
     - mysql
 
+  - name: install python
+    ansible.builtin.pip:
+     executable: pip3.9
+     name: pymysql
+
   - name: roboshop user create
     ansible.builtin.user:
      name: roboshop
