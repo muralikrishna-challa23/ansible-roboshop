@@ -81,8 +81,8 @@
   #    msg: "{{catalogue_output}}"
 
   - name: Load products to mongodb
-    ansible.builtin.commnad: mongosh --host mongo.mkreddy.shop </app/db/master-data.js
-    when: "{{catalogue_output.stdout | int < 0 }}"
+    ansible.builtin.commnad: mongosh --host mongodb.mkreddy.shop </app/db/master-data.js
+    when: catalogue_output.stdout | int < 0
 
   - name: Start catalogue service
     ansible.builtin.service:
