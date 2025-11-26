@@ -41,73 +41,37 @@
      url: https://roboshop-artifacts.s3.amazonaws.com/catalogue-v3.zip
      dest: /tmp/catalogue.zip
 
+  - name: extract catalogue application to app directory
+    ansible.builtin.unarchive:
+     src: /tmp/catalogue.zip
+     dest: /app
+     remote_src: yes
 
-SCRIPT_PATH=$PWD
+  - name: install dependencies
+    community.general.npm:
+     path: /app
 
-dnf module disable nodejs -y &>>$LOG_FILE
-VALIDATE $? "Disable NodeJs"
+  - name: copy service file
+    ansible.builtin.copy:
+     src: catalogue.service
+     dest: /etc/systemd/system/catalogue.service
 
-dnf module enable nodejs:20 -y &>>$LOG_FILE
-VALIDATE $? "Enable NodeJs 20"
+  - name: copy mongo.repo file
+    ansible.builtin.copy:
+     src: mongo.repo
+     dest: /etc/yum.repos.d/mongo.repo
 
-dnf install nodejs -y &>>$LOG_FILE
-VALIDATE $? "Installing NodeJs"
+  - name: install mongo client
+    ansible.builtin.package:
+     name: mongodb-mongosh
+     state: installed
+  
+  - name: evaluate mongodb data
+    community.mongodb.mongodb_shell:
+     eval: db.getMongo().getDBNames().indexOf('catalogue')
+     login_host: mongodb.mkreddy.shop
+    register: catalogue_output
 
-id roboshop &>>$LOG_FILE
-if [ $? -ne 0 ]; then
-    useradd --system --home /app --shell /sbin/nologin --comment "roboshop system user" roboshop &>>$LOG_FILE
-    VALIDATE $? "Creating System user roboshop"
-else
-    echo -e "User already exists...$Y SKIPPING $W" | tee -a &>>$LOG_FILE
-fi
-
-mkdir -p  /app &>>$LOG_FILE
-
-rm -rf /tmp/catalogue.zip &>>$LOG_FILE
-VALIDATE $? "tmp directory catalogue.zip file cleanup"
-
-curl -o /tmp/catalogue.zip https://roboshop-artifacts.s3.amazonaws.com/catalogue-v3.zip  &>>$LOG_FILE
-VALIDATE $? "Downloading Catalogue to /tmp directory"
-
-cd /app &>>$LOG_FILE
-VALIDATE $? "Moving to app directory"
-
-rm -rf /app/* &>>$LOG_FILE
-VALIDATE $? "cleanup app directory"
-
-unzip /tmp/catalogue.zip &>>$LOG_FILE
-VALIDATE $? "unzipping catalogue to app directory"
-
-npm install  &>>$LOG_FILE
-
-cp $SCRIPT_PATH/catalogue.service  /etc/systemd/system/catalogue.service &>>$LOG_FILE
-
-systemctl daemon-reload &>>$LOG_FILE
-VALIDATE $? "daemon-reload"
-
-systemctl enable catalogue &>>$LOG_FILE
-VALIDATE $? "Enabling Catalogue"
-
-systemctl start catalogue &>>$LOG_FILE
-VALIDATE $? "Starting Catalogue"
-
-cp $SCRIPT_PATH/mongo.repo /etc/yum.repos.d/mongo.repo &>>$LOG_FILE
-VALIDATE $? "mongodb repo copy"
-
-dnf install mongodb-mongosh -y &>>$LOG_FILE
-VALIDATE $? "Installing mongodb client"
-
-MONGODATA=$(mongosh mongo.mkreddy.shop --quiet --eval "db.getMongo().getDBNames().indexOf('catalogue')" )
-if [ $MONGODATA -le 0 ]; then
-    mongosh --host mongo.mkreddy.shop </app/db/master-data.js &>>$LOG_FILE
-    VALIDATE $? "Load master data to mongodb"
-else
-  echo -e "Master data already loaded.. $Y SKIPPING $W"
-fi
-
-systemctl restart catalogue &>>$LOG_FILE
-VALIDATE $? "Catalogue service restart"
-
-
-
-
+  - name: print catalogue output
+    ansible.builtin.debug:
+     msg: catalogue_output
