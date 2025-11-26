@@ -66,11 +66,15 @@
      name: mongodb-mongosh
      state: installed
   
-  - name: evaluate mongodb data
-    community.mongodb.mongodb_shell:
-     eval: db.getMongo().getDBNames().indexOf('catalogue')
-     login_host: mongodb.mkreddy.shop
+  - name: evaluate mongo data
+    ansible.builtin command: mongosh mongo.mkreddy.shop --quiet --eval "db.getMongo().getDBNames().indexOf('catalogue')"
     register: catalogue_output
+    
+  # - name: evaluate mongodb data
+  #   community.mongodb.mongodb_shell:
+  #    eval: db.getMongo().getDBNames().indexOf('catalogue')
+  #    login_host: mongodb.mkreddy.shop
+  #   register: catalogue_output
 
   - name: print catalogue output
     ansible.builtin.debug:
