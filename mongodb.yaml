@@ -18,6 +18,9 @@
      regexp: '127.0.0.0'
      replace: '0.0.0.0'
   
+  - name: command to allow remote conn
+    ansible.builtin.command: sed -i 's/127.0.0.1/0.0.0.0/g' /etc/mongod.conf
+
   - name: start mongodb
     ansible.builtin.service:
      name: mongod
