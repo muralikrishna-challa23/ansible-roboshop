@@ -66,10 +66,10 @@
      name: mongodb-mongosh
      state: installed
   
-  - name: evaluate mongo data
-    ansible.builtin command: mongosh mongo.mkreddy.shop --quiet --eval "db.getMongo().getDBNames().indexOf('catalogue')"
+  - name: connect to mongodb
+    ansible.builtin command: mongosh mongodb.mkreddy.shop --quiet --eval "db.getMongo().getDBNames().indexOf('catalogue')"
     register: catalogue_output
-    
+
   # - name: evaluate mongodb data
   #   community.mongodb.mongodb_shell:
   #    eval: db.getMongo().getDBNames().indexOf('catalogue')
